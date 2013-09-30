@@ -1,0 +1,70 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.5.+'
+    }
+}
+apply plugin: 'android'
+
+repositories {
+    mavenCentral()
+
+    maven {
+        url 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
+}
+
+android {
+    compileSdkVersion 18
+    buildToolsVersion "17.0.0"
+
+    defaultConfig {
+        minSdkVersion 17
+        targetSdkVersion 18
+    }
+}
+
+sourceSets {
+    testLocal {
+        java.srcDir file('src/test/java')
+        resources.srcDir file('src/test/resources')
+    }
+}
+
+
+dependencies {
+
+	// You must install or update the Support Repository through the SDK manager to use this dependency.
+	// The Support Repository (separate from the corresponding library) can be found in the Extras category.
+	// compile 'com.android.support:support-v4:18.0.0'
+
+    compile 'org.roboguice:roboguice:2.0'
+    compile 'com.google.android:support-v4:r6'
+
+
+    testLocalCompile 'junit:junit:4.8.2'
+    testLocalCompile 'org.robolectric:robolectric:2.1'
+    testLocalCompile 'com.google.android:android:4.0.1.2'
+    testLocalCompile 'com.google.android:support-v4:r6'
+    testLocalCompile 'org.roboguice:roboguice:2.0'
+
+    compile files('lib/socketio.jar')
+}
+
+task localTest(type: Test, dependsOn: assemble) {
+    testClassesDir = sourceSets.testLocal.output.classesDir
+
+    android.sourceSets.main.java.srcDirs.each { dir ->
+        def buildDir = dir.getAbsolutePath().split('/')
+        buildDir =  (buildDir[0..(buildDir.length - 4)] + ['build', 'classes', 'debug']).join('/')
+
+        sourceSets.testLocal.compileClasspath += files(buildDir)
+        sourceSets.testLocal.runtimeClasspath += files(buildDir)
+    }
+
+    classpath = sourceSets.testLocal.runtimeClasspath
+}
+
+check.dependsOn localTest
